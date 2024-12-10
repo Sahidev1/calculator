@@ -31,6 +31,12 @@ defmodule Calc do
     evalAST(ast)
   end
 
+  def timedRun (expr) do
+    {time0, ast} = :timer.tc(fn-> buildAST(expr) end)
+    {time1, v} = :timer.tc(fn -> evalAST(ast) end)
+    {time0, time1}
+  end
+
   def buildAST(input) do
     input = String.replace(input, ~r/\s+/, "")
     input = String.to_charlist(input)
@@ -116,10 +122,10 @@ defmodule Calc do
     {toconsume, rest}
   end
 
-  def consumeSubExpr(tokens=[:RPARAN|rest], subToks, stack=[]) do {subToks, rest} end
-  def consumeSubExpr(tokens=[:RPARAN|rest], subToks, stack=[popped|remstack]) do consumeSubExpr(rest, subToks++[:RPARAN], remstack) end
-  def consumeSubExpr(tokens=[:LPARAN| rest], subtoks, stack) do consumeSubExpr(rest, subtoks++[:LPARAN], [:LPARAN|stack]) end
-  def consumeSubExpr(tokens=[curr|rest], subToks, stack) do consumeSubExpr(rest,subToks++[curr], stack) end
+  def consumeSubExpr(tokens=[:RPARAN|rest], subToks, stack=[]) do {Enum.reverse(subToks), rest} end
+  def consumeSubExpr(tokens=[:RPARAN|rest], subToks, stack=[popped|remstack]) do consumeSubExpr(rest, [:RPARAN|subToks], remstack) end
+  def consumeSubExpr(tokens=[:LPARAN| rest], subtoks, stack) do consumeSubExpr(rest, [:LPARAN|subtoks], [:LPARAN|stack]) end
+  def consumeSubExpr(tokens=[curr|rest], subToks, stack) do consumeSubExpr(rest,[curr|subToks], stack) end
 
   def scanToks([]) do consume([]) end
   def scanToks(tokens=[:LPARAN| rest]) do
