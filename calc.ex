@@ -16,19 +16,18 @@ defmodule Calc do
 
   @type expr()::{:LITERAL,literal()}
   | {op(), expr(), expr()}
-  | {op(), expr()}|{}
+  | {op(), expr()}
 
+  def eval(expr) do
+    ast = buildAST(expr)
+    evalAST(ast)
+  end
 
   def example do
     input = " 1 + 3345 - (41 + 6)  -334   + 2141 - (123 + 5654 - 5)+1"
     ast = buildAST(input)
     v=evalAST(ast)
     {ast, v}
-  end
-
-  def eval(expr) do
-    ast = buildAST(expr)
-    evalAST(ast)
   end
 
   def timedRun (expr) do
@@ -40,28 +39,19 @@ defmodule Calc do
   def buildAST(input) do
     input = String.replace(input, ~r/\s+/, "")
     input = String.to_charlist(input)
-    tokens = getTokens(input, [])
+    tokens = tokenize(input, [])
     {ast,_} = parseE(tokens)
     ast
   end
 
   def evalAST({:LITERAL, v}) do v end
-  def evalAST({:NEGATE, expr}) do
-    -evalAST(expr)
-  end
-  def evalAST({:PLUS, left, right}) do
-    evalAST(left) + evalAST(right)
-  end
-  def evalAST({:MINUS, left, right}) do
-    evalAST(left) - evalAST(right)
-  end
+  def evalAST({:NEGATE, expr}) do -evalAST(expr) end
+  def evalAST({:PLUS, left, right}) do evalAST(left) + evalAST(right) end
+  def evalAST({:MINUS, left, right}) do evalAST(left) - evalAST(right) end
 
   def parseE(tokens) do
     {a, tokens} = parseT(tokens)
-    #IO.puts("parseE")
-    #IO.inspect(a)
-    {nextTok, tokens} = scanToks(tokens)
-    #IO.inspect(nextTok)
+    {nextTok, tokens} = scanToken(tokens)
 
     case nextTok do
       :PLUS->
@@ -75,9 +65,8 @@ defmodule Calc do
   end
 
   def parseE_prime(a_prime={op, a, b}, tokens) do
-    {nextTok, tokens} = scanToks(tokens)
-    #IO.puts("parseE prime a_prime")
-    #IO.inspect(nextTok)
+    {nextTok, tokens} = scanToken(tokens)
+
     case nextTok do
       :PLUS ->
         {b, tokens} = parseT(tokens)
@@ -91,9 +80,7 @@ defmodule Calc do
 
   def parseT([]) do {nil, []} end
   def parseT(tokens) do
-    {a, tokens} = scanToks(tokens)
-    #IO.puts("parseT token:")
-    #IO.inspect(a)
+    {a, tokens} = scanToken(tokens)
 
     case a do
       {:LITERAL, v} -> {a, tokens}
@@ -101,53 +88,37 @@ defmodule Calc do
         {res, _} = parseE(a)
         {res, tokens}
       :MINUS->
-          #{b, tokens} = scanToks(tokens)
           {res, tokens} = parseT(tokens)
           {{:NEGATE, res}, tokens}
-
       _->{{:ERROR, "invalid term "}, tokens}
     end
   end
 
-
-
-
-
-  def isDigit?(c) do
-    c >= 48 && c <= 57
-  end
+  def scanToken([]) do consume([]) end
+  def scanToken(tokens=[:LPARAN| rest]) do consumeSubExpr(rest, [], []) end
+  def scanToken(tokens=[nextTok|rest]) do consume(tokens) end
 
   def consume([]) do {nil,[]} end
-  def consume(tokens=[toconsume|rest]) do
-    {toconsume, rest}
-  end
+  def consume(tokens=[toconsume|rest]) do {toconsume, rest} end
 
   def consumeSubExpr(tokens=[:RPARAN|rest], subToks, stack=[]) do {Enum.reverse(subToks), rest} end
   def consumeSubExpr(tokens=[:RPARAN|rest], subToks, stack=[popped|remstack]) do consumeSubExpr(rest, [:RPARAN|subToks], remstack) end
   def consumeSubExpr(tokens=[:LPARAN| rest], subtoks, stack) do consumeSubExpr(rest, [:LPARAN|subtoks], [:LPARAN|stack]) end
   def consumeSubExpr(tokens=[curr|rest], subToks, stack) do consumeSubExpr(rest,[curr|subToks], stack) end
 
-  def scanToks([]) do consume([]) end
-  def scanToks(tokens=[:LPARAN| rest]) do
-    consumeSubExpr(rest, [], [])
-  end
-  def scanToks(tokens=[nextTok|rest]) do
-    consume(tokens)
+  def tokenize(input=[], tokens) do tokens end
+  def tokenize(input, tokens) do
+    {nextTok, remInput} = scanInput(input, [], false)
+    tokenize(remInput, tokens++[nextTok])
   end
 
-  def getTokens(input=[], tokens) do tokens end
-  def getTokens(input, tokens) do
-    {nextTok, remInput} = scanToken(input, [], false)
-    getTokens(remInput, tokens++[nextTok])
-  end
-
-  def scanToken([],foundTok, true) do
+  def scanInput([],foundTok, true) do
     {{:LITERAL, String.to_integer(to_string(foundTok))}, []}
   end
-  def scanToken([], _, false) do {nil, []} end
-  def scanToken(input=[c|rest], foundTok=[], scanningInt=false) do
+  def scanInput([], _, false) do {nil, []} end
+  def scanInput(input=[c|rest], foundTok=[], scanningInt=false) do
     cond do
-      isDigit?(c)-> scanToken(rest, foundTok++[c], true)
+      isDigit?(c)-> scanInput(rest, foundTok++[c], true)
       [c] == '+'-> {:PLUS, rest}
       [c] == '-'-> {:MINUS, rest}
       [c] == '('-> {:LPARAN, rest}
@@ -156,11 +127,14 @@ defmodule Calc do
     end
   end
 
-
-  def scanToken(input=[c|rest], foundTok, scanningInt=true) do
+  def scanInput(input=[c|rest], foundTok, scanningInt=true) do
     cond do
-      isDigit?(c)->scanToken(rest, foundTok++[c], true)
+      isDigit?(c)->scanInput(rest, foundTok++[c], true)
       true->{{:LITERAL, String.to_integer(to_string(foundTok))}, input}
     end
+  end
+
+  def isDigit?(c) do
+    c >= 48 && c <= 57
   end
 end
