@@ -10,7 +10,7 @@
 #2) parse token sequence and build AST
 #3 optional) Evaluate AST
 defmodule Calc do
-  @type op():: :PLUS | :MINUS |:NEGATE
+  @type op():: :MUL | :DIV |:PLUS | :MINUS |:NEGATE
   @type delim():: :LPARAN | :RPARAN
   @type literal():: integer()
   @type token():: op() | delim() | literal()
@@ -120,6 +120,8 @@ defmodule Calc do
   def scanInput(input=[c|rest], foundTok=[], scanningInt=false) do
     cond do
       isDigit?(c)-> scanInput(rest, foundTok++[c], true)
+      [c] == '*'-> {:MUL, rest}
+      [c] == '/'-> {:DIV, rest}
       [c] == '+'-> {:PLUS, rest}
       [c] == '-'-> {:MINUS, rest}
       [c] == '('-> {:LPARAN, rest}
