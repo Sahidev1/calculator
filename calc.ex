@@ -5,6 +5,19 @@
 # T -> INTEGER | (E) | -T
 
 
+# Non left recursive implementation of grammar:
+# E -> TE'
+# E' -> (+|-)TE' | ε
+# T -> FT'
+# T' -> (*|/)FT' | ε
+# F -> INTEGER | (E) | -T
+
+# simpler more understandable expression:
+# E -> T{(+|-) T | ε} , where E' = {(+|-) T | ε}
+# T -> F{(*|/) F | ε} , where T' = {(*|/) F | ε}
+# F -> INTEGER | (E) | -T
+
+
 #steps:
 #1) Tokenize input
 #2) parse token sequence and build AST
@@ -49,6 +62,8 @@ defmodule Calc do
   def evalAST({:NEGATE, expr}) do -evalAST(expr) end
   def evalAST({:PLUS, left, right}) do evalAST(left) + evalAST(right) end
   def evalAST({:MINUS, left, right}) do evalAST(left) - evalAST(right) end
+  def evalAST({:MUL, left, right}) do evalAST(left)*evalAST(right) end
+  def evalAST({:DIV, left, right}) do div(evalAST(left), evalAST(right)) end
 
   def parseE(tokens) do
     {a, tokens} = parseT(tokens)
@@ -75,12 +90,43 @@ defmodule Calc do
       :MINUS ->
         {b, tokens} = parseT(tokens)
         parseE_prime({:MINUS, a_prime, b}, tokens)
-      _->{a_prime, tokens}
+      _->{a_prime, [nextTok|tokens]}
     end
   end
 
-  def parseT([]) do {nil, []} end
   def parseT(tokens) do
+    {a, tokens} = parseF(tokens)
+    {nextTok, tokens} = scanToken(tokens)
+
+    case nextTok do
+      :MUL->
+        {b, tokens} = parseF(tokens)
+        parseT_prime({:MUL, a, b}, tokens)
+      :DIV->
+        {b, tokens} = parseF(tokens)
+        parseT_prime({:DIV, a, b}, tokens)
+      _->{a, [nextTok|tokens]}
+    end
+  end
+
+  def parseT_prime(a_prime={op, a, b},tokens)do
+    {nextTok, tokens} = scanToken(tokens)
+
+    case nextTok do
+      :MUL ->
+        {b, tokens} = parseF(tokens)
+        parseT_prime({:MUL, a_prime, b}, tokens)
+      :DIV ->
+        {b, tokens} = parseF(tokens)
+        parseT_prime({:DIV, a_prime, b}, tokens)
+      _->{a_prime, [nextTok|tokens]}
+    end
+  end
+
+
+
+  def parseF([]) do {nil, []} end
+  def parseF(tokens) do
     {a, tokens} = scanToken(tokens)
 
     case a do
