@@ -58,6 +58,9 @@ defmodule Calc do
     ast
   end
 
+  def evalAST(err={:ERROR, msg}) do
+    exit(err)
+  end
   def evalAST({:LITERAL, v}) do v end
   def evalAST({:NEGATE, expr}) do -evalAST(expr) end
   def evalAST({:PLUS, left, right}) do evalAST(left) + evalAST(right) end
@@ -76,7 +79,8 @@ defmodule Calc do
       :MINUS->
         {b, tokens} = parseT(tokens)
         parseE_prime({:MINUS, a, b}, tokens)
-      _-> {a, tokens}
+      nil-> {a, tokens}
+      _-> {{:ERROR, "invalid operator token"}, tokens}
     end
   end
 
