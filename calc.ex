@@ -64,7 +64,7 @@ defmodule Calc do
   def evalAST({:MINUS, left, right}) do evalAST(left) - evalAST(right) end
   def evalAST({:MUL, left, right}) do evalAST(left)*evalAST(right) end
   def evalAST({:DIV, left, right}) do div(evalAST(left), evalAST(right)) end
-
+  def evalAST({:MOD, left, right}) do rem(evalAST(left), evalAST(right)) end
   def parseE(tokens) do
     {a, tokens} = parseT(tokens)
     {nextTok, tokens} = scanToken(tokens)
@@ -105,6 +105,9 @@ defmodule Calc do
       :DIV->
         {b, tokens} = parseF(tokens)
         parseT_prime({:DIV, a, b}, tokens)
+      :MOD->
+        {b, tokens} = parseF(tokens)
+        parseT_prime({:MOD, a, b}, tokens)
       _->{a, [nextTok|tokens]}
     end
   end
@@ -119,6 +122,9 @@ defmodule Calc do
       :DIV ->
         {b, tokens} = parseF(tokens)
         parseT_prime({:DIV, a_prime, b}, tokens)
+      :MOD->
+        {b, tokens} = parseF(tokens)
+        parseT_prime({:MOD, a_prime, b}, tokens)
       _->{a_prime, [nextTok|tokens]}
     end
   end
@@ -168,6 +174,7 @@ defmodule Calc do
       isDigit?(c)-> scanInput(rest, foundTok++[c], true)
       [c] == '*'-> {:MUL, rest}
       [c] == '/'-> {:DIV, rest}
+      [c] == '%' -> {:MOD, rest}
       [c] == '+'-> {:PLUS, rest}
       [c] == '-'-> {:MINUS, rest}
       [c] == '('-> {:LPARAN, rest}
