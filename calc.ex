@@ -1,20 +1,20 @@
 
 # Grammar:
-# E -> F * E | F / E | F
-# F -> T + F| T - F| T
-# T -> INTEGER | (E) | -T
+# E -> E + T | E - T | T
+# T -> T * F | T / F | T % F | F
+# F -> INTEGER | (E) | -F
 
 
 # Non left recursive implementation of grammar:
 # E -> TE'
 # E' -> (+|-)TE' | ε
 # T -> FT'
-# T' -> (*|/)FT' | ε
+# T' -> (*|/|%)FT' | ε
 # F -> INTEGER | (E) | -T
 
 # simpler more understandable expression:
 # E -> T{(+|-) T | ε} , where E' = {(+|-) T | ε}
-# T -> F{(*|/) F | ε} , where T' = {(*|/) F | ε}
+# T -> F{(*|/|%) F | ε} , where T' = {(*|/|%) F | ε}
 # F -> INTEGER | (E) | -T
 
 
@@ -23,7 +23,7 @@
 #2) parse token sequence and build AST
 #3 optional) Evaluate AST
 defmodule Calc do
-  @type op():: :MUL | :DIV |:PLUS | :MINUS |:NEGATE
+  @type op():: :MUL | :DIV | :MOD |:PLUS | :MINUS |:NEGATE
   @type delim():: :LPARAN | :RPARAN
   @type literal():: integer()
   @type token():: op() | delim() | literal()
