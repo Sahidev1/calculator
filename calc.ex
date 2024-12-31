@@ -1,6 +1,7 @@
 
 # Grammar:
-# E -> T + E | T - E | T
+# E -> F * E | F / E | F
+# F -> T + F| T - F| T
 # T -> INTEGER | (E) | -T
 
 
