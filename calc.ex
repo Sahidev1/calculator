@@ -27,7 +27,7 @@
 #2) parse token sequence and build AST
 #3 optional) Evaluate AST
 defmodule Calc do
-  @type op():: :MUL | :DIV | :MOD |:PLUS | :MINUS |:NEGATE
+  @type op():: :EXP |:MUL | :DIV | :MOD |:PLUS | :MINUS |:NEGATE
   @type delim():: :LPARAN | :RPARAN
   @type literal():: integer()
   @type token():: op() | delim() | literal()
@@ -51,7 +51,7 @@ defmodule Calc do
   def timedRun (expr) do
     {time0, ast} = :timer.tc(fn-> buildAST(expr) end)
     {time1, v} = :timer.tc(fn -> evalAST(ast) end)
-    {time0, time1}
+    [TIME_UNIT: :MICRO_SECONDS ,ASTBUILD_TIME: time0, EVAL_TIME: time1, EVAL_RESULT: v]
   end
 
   def buildAST(input) do
@@ -72,6 +72,8 @@ defmodule Calc do
   def evalAST({:MUL, left, right}) do evalAST(left)*evalAST(right) end
   def evalAST({:DIV, left, right}) do div(evalAST(left), evalAST(right)) end
   def evalAST({:MOD, left, right}) do rem(evalAST(left), evalAST(right)) end
+  def evalAST({:EXP, left, right}) do evalAST(left) ** evalAST(right) end
+
   def parseE(tokens) do
     {a, tokens} = parseT(tokens)
     {nextTok, tokens} = scanToken(tokens)
@@ -103,18 +105,18 @@ defmodule Calc do
   end
 
   def parseT(tokens) do
-    {a, tokens} = parseF(tokens)
+    {a, tokens} = parseP(tokens)
     {nextTok, tokens} = scanToken(tokens)
 
     case nextTok do
       :MUL->
-        {b, tokens} = parseF(tokens)
+        {b, tokens} = parseP(tokens)
         parseT_prime({:MUL, a, b}, tokens)
       :DIV->
-        {b, tokens} = parseF(tokens)
+        {b, tokens} = parseP(tokens)
         parseT_prime({:DIV, a, b}, tokens)
       :MOD->
-        {b, tokens} = parseF(tokens)
+        {b, tokens} = parseP(tokens)
         parseT_prime({:MOD, a, b}, tokens)
       _->{a, [nextTok|tokens]}
     end
@@ -125,18 +127,40 @@ defmodule Calc do
 
     case nextTok do
       :MUL ->
-        {b, tokens} = parseF(tokens)
+        {b, tokens} = parseP(tokens)
         parseT_prime({:MUL, a_prime, b}, tokens)
       :DIV ->
-        {b, tokens} = parseF(tokens)
+        {b, tokens} = parseP(tokens)
         parseT_prime({:DIV, a_prime, b}, tokens)
       :MOD->
-        {b, tokens} = parseF(tokens)
+        {b, tokens} = parseP(tokens)
         parseT_prime({:MOD, a_prime, b}, tokens)
       _->{a_prime, [nextTok|tokens]}
     end
   end
 
+  def parseP(tokens) do
+    {a, tokens} = parseF(tokens)
+    {nextTok, tokens} = scanToken(tokens)
+
+    case nextTok do
+      :EXP ->
+        {b, tokens} = parseF(tokens)
+        parseP_prime({:EXP, a, b}, tokens)
+      _->{a, [nextTok|tokens]}
+    end
+  end
+
+  def parseP_prime(a_prime={op, a, b},tokens) do
+    {nextTok, tokens} = scanToken(tokens)
+
+    case nextTok do
+      :EXP ->
+        {b, tokens} = parseF(tokens)
+        parseP_prime({:EXP, a_prime, b}, tokens)
+      _->{a_prime, [nextTok|tokens]}
+    end
+  end
 
 
   def parseF([]) do {nil, []} end
@@ -180,6 +204,7 @@ defmodule Calc do
   def scanInput(input=[c|rest], foundTok=[], scanningInt=false) do
     cond do
       isDigit?(c)-> scanInput(rest, foundTok++[c], true)
+      [c] == '^' -> {:EXP, rest}
       [c] == '*'-> {:MUL, rest}
       [c] == '/'-> {:DIV, rest}
       [c] == '%' -> {:MOD, rest}
