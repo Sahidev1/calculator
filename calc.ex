@@ -36,27 +36,14 @@ defmodule Calc do
   | {op(), expr(), expr()}
   | {op(), expr()}
 
-  def interactive do interactive(true) end
-  def interactive(true) do
-    IO.puts("Enter an expression to evaluate")
-    interactive(false)
-  end
-  def interactive(false) do
-    input = IO.gets("")
-    if input == "exit\n" or input == "q\n" do
-      IO.puts("Exiting")
-      exit("")
-    else
-      res = eval(input)
-      IO.inspect(res)
-      interactive(false)
-    end
-  end
+
 
   def eval(expr) do
     ast = buildAST(expr)
     evalAST(ast)
   end
+
+
 
   def example do
     input = " 1 + 3345 - (41 + 6)  -334   + 2141 - (123 + 5654 - 5)+1"
@@ -77,6 +64,24 @@ defmodule Calc do
     tokens = tokenize(input, [])
     {ast,_} = parseE(tokens)
     ast
+  end
+
+  def evalAST_error_precheck({:ERROR, msg}) do {true, msg} end
+  def evalAST_error_precheck({:LITERAL, v}) do {false, ""} end
+  def evalAST_error_precheck({:NEGATE, expr}) do evalAST_error_precheck(expr) end
+  def evalAST_error_precheck({:DIV, _, {:LITERAL, 0}}) do {true, "Divide by zero"} end
+  def evalAST_error_precheck({op, left, right}) do
+    {lcheck,lmsg} = evalAST_error_precheck(left)
+    {rcheck,rmsg} = evalAST_error_precheck(right)
+    if lcheck do
+      {lcheck,lmsg}
+    else
+      if rcheck do
+        {rcheck,rmsg}
+      else
+        {false, ""}
+      end
+    end
   end
 
   def evalAST(err={:ERROR, msg}) do
