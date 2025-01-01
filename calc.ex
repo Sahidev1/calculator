@@ -36,6 +36,23 @@ defmodule Calc do
   | {op(), expr(), expr()}
   | {op(), expr()}
 
+  def interactive do interactive(true) end
+  def interactive(true) do
+    IO.puts("Enter an expression to evaluate")
+    interactive(false)
+  end
+  def interactive(false) do
+    input = IO.gets("")
+    if input == "exit\n" or input == "q\n" do
+      IO.puts("Exiting")
+      exit("")
+    else
+      res = eval(input)
+      IO.inspect(res)
+      interactive(false)
+    end
+  end
+
   def eval(expr) do
     ast = buildAST(expr)
     evalAST(ast)
