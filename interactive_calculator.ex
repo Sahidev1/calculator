@@ -8,13 +8,7 @@ Code.require_file("calc.ex")
 defmodule Interactive do
 
   def main do
-    r = interactive()
-    if r == :QUIT do
-      exit("quitting")
-    else
-      main()
-    end
-
+    interactive()
   end
 
   def interactive do interactive(true) end
