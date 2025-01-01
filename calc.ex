@@ -1,20 +1,24 @@
 
 # Grammar:
 # E -> E + T | E - T | T
-# T -> T * F | T / F | T % F | F
+# T -> T * P | T / P | T % P | P
+# P -> P ^ F | F
 # F -> INTEGER | (E) | -F
 
 
 # Non left recursive implementation of grammar:
 # E -> TE'
 # E' -> (+|-)TE' | ε
-# T -> FT'
-# T' -> (*|/|%)FT' | ε
+# T -> PT'
+# T'-> (*|/|%)PT' | ε
+# P -> FP'
+# P' -> ^FP'
 # F -> INTEGER | (E) | -T
 
 # simpler more understandable expression:
 # E -> T{(+|-) T | ε} , where E' = {(+|-) T | ε}
-# T -> F{(*|/|%) F | ε} , where T' = {(*|/|%) F | ε}
+# T -> P{(*|/|%) P | ε} , where T' = {(*|/|%) P | ε}
+# P -> F{^F | ε}, where P' = {^F | ε}
 # F -> INTEGER | (E) | -T
 
 
