@@ -30,7 +30,7 @@
 Code.require_file("lexer.ex")
 Code.require_file("parser.ex")
 
-defmodule Calc do
+defmodule Eval do
   @type op():: :EXP |:MUL | :DIV | :MOD |:PLUS | :MINUS |:NEGATE
   @type delim():: :LPARAN | :RPARAN
   @type literal():: integer()

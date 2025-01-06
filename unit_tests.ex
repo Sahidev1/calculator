@@ -1,10 +1,13 @@
 
-Code.require_file("calc.ex")
+Code.require_file("eval.ex")
 
 defmodule Unit_tests do
 
   def test do
     test_cases = [
+      {"0",0},
+      {"-1", -1},
+      {"--1", 1},
       {"2 + 3", 5},
       {"10 - 4", 6},
       {"3 * 6", 18},
@@ -35,7 +38,7 @@ defmodule Unit_tests do
 
 
     res=Enum.reduce(test_cases,[0,0,[]] ,fn {expression, expected}, acc=[cases,failed, failStack] ->
-      result = Calc.eval(expression)
+      result = Eval.eval(expression)
       if (result == expected) do
         [cases + 1, failed, failStack]
       else

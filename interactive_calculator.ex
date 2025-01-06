@@ -3,7 +3,7 @@
 
 
 
-Code.require_file("calc.ex")
+Code.require_file("eval.ex")
 
 defmodule Interactive do
 
@@ -22,13 +22,13 @@ defmodule Interactive do
       IO.puts("Exiting")
       :QUIT
     else
-      ast = Calc.buildAST(input)
-      {err?, msg} = Calc.evalAST_error_precheck(ast)
+      ast = Eval.buildAST(input)
+      {err?, msg} = Eval.evalAST_error_precheck(ast)
 
       if err? do
         IO.inspect({:ERROR, msg})
       else
-        IO.inspect(Calc.evalAST(ast))
+        IO.inspect(Eval.evalAST(ast))
       end
 
       interactive(false)
