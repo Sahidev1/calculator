@@ -60,7 +60,7 @@ defmodule Eval do
 
   def timedRun (input) do
     {stringtime, input} = :timer.tc(fn ->
-      input = String.to_charlist(input)
+      String.to_charlist(input)
     end)
 
     {timetok, tokens} = :timer.tc(fn->
@@ -84,10 +84,10 @@ defmodule Eval do
   end
 
   def evalAST_error_precheck({:ERROR, msg}) do {true, msg} end
-  def evalAST_error_precheck({:LITERAL, v}) do {false, ""} end
+  def evalAST_error_precheck({:LITERAL, _v}) do {false, ""} end
   def evalAST_error_precheck({:NEGATE, expr}) do evalAST_error_precheck(expr) end
   def evalAST_error_precheck({:DIV, _, {:LITERAL, 0}}) do {true, "divide by zero"} end
-  def evalAST_error_precheck({op, left, right}) do
+  def evalAST_error_precheck({_op, left, right}) do
     {lcheck,lmsg} = evalAST_error_precheck(left)
     {rcheck,rmsg} = evalAST_error_precheck(right)
     if lcheck do
@@ -100,9 +100,9 @@ defmodule Eval do
       end
     end
   end
-  def evalAST_error_precheck(tok) do {true, "nil token"} end
+  def evalAST_error_precheck(_) do {true, "nil token"} end
 
-  def evalAST(err={:ERROR, msg}) do
+  def evalAST(err={:ERROR, _msg}) do
     exit(err)
   end
   def evalAST({:LITERAL, v}) do v end

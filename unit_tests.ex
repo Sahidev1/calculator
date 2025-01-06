@@ -39,7 +39,7 @@ defmodule Unit_tests do
 
 
 
-    res=Enum.reduce(test_cases,[0,0,[]] ,fn {expression, expected}, acc=[cases,failed, failStack] ->
+    res=Enum.reduce(test_cases,[0,0,[]] ,fn {expression, expected}, [cases,failed, failStack] ->
       result = Eval.eval(expression)
       if (result == expected) do
         [cases + 1, failed, failStack]

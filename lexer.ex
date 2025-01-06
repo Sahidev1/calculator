@@ -1,7 +1,7 @@
 
 defmodule Lexer do
 
-  def tokenize(input=[], tokens) do Enum.reverse(tokens) end
+  def tokenize(_input=[], tokens) do Enum.reverse(tokens) end
   def tokenize([?\s| remaining], tokens) do tokenize(remaining, tokens) end
   def tokenize([?\n| remaining], tokens) do tokenize(remaining, tokens) end
   def tokenize([?\r| remaining], tokens) do tokenize(remaining, tokens) end
@@ -11,7 +11,7 @@ defmodule Lexer do
   end
 
 
-  def scanInput(l=[c|rest]) when c in ?0..?9 do parse_number(l,0) end
+  def scanInput(l=[c|_rest]) when c in ?0..?9 do parse_number(l,0) end
   def scanInput([?^|rest]) do {:EXP, rest} end
   def scanInput([?*|rest]) do {:MUL, rest} end
   def scanInput([?/|rest]) do {:DIV, rest} end
