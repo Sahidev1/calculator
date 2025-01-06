@@ -1,128 +1,62 @@
+# Uses higher order function to generape parsers
 defmodule Parser do
-
   def generatePrimeParser(cases, subparser) do
-    fun = fn a_prime={op, a, b}, tokens, fself ->
+    fun = fn a_prime={op, a, b}, tokens, fself, topself ->
       {nextTok, tokens} = scanToken(tokens)
 
       if (Enum.any?(cases, fn e -> e == nextTok end)) do
-        {b, tokens} = subparser.(tokens)
-        fself.({nextTok, a_prime, b}, tokens)
+        {b, tokens} = subparser.(tokens, topself)
+        fself.({nextTok, a_prime, b}, tokens, fself, topself)
       else
         {a_prime, [nextTok|tokens]}
       end
     end
-
-    fn a_prime, tokens -> fun.(a_prime, tokens, fun) end
   end
 
-
   def generateParser(cases, isTop?, subparser, primeparser, err) do
-    fun = fn tokens ->
-      {a, tokens} = subparser.(tokens)
+    fun = fn tokens, topself ->
+      {a, tokens} = subparser.(tokens, topself)
       {nextTok, tokens} = scanToken(tokens)
 
       topNil? = isTop? && (nextTok == nil)
-
       if(topNil?) do
         {a, tokens}
       else
         if (Enum.any?(cases, fn e -> e == nextTok end)) do
-          {b, tokens} = subparser.(tokens)
-          primeparser.({nextTok, a, b}, tokens)
+          {b, tokens} = subparser.(tokens, topself)
+          primeparser.({nextTok, a, b}, tokens, primeparser, topself)
         else
           if (isTop?) do
-            err
+            {err, tokens}
           else
             {a, [nextTok|tokens]}
+          end
         end
       end
     end
   end
 
-  def parseE(tokens) do
-    {a, tokens} = parseT(tokens)
-    {nextTok, tokens} = scanToken(tokens)
-
-    case nextTok do
-      :PLUS->
-        {b, tokens} = parseT(tokens)
-        parseE_prime({:PLUS, a, b}, tokens)
-      :MINUS->
-        {b, tokens} = parseT(tokens)
-        parseE_prime({:MINUS, a, b}, tokens)
-      nil-> {a, tokens}
-      _-> {{:ERROR, "invalid operator token"}, tokens}
-    end
-  end
-
-  def parseE_prime(a_prime={op, a, b}, tokens) do
-    {nextTok, tokens} = scanToken(tokens)
-
-    case nextTok do
-      :PLUS ->
-        {b, tokens} = parseT(tokens)
-        parseE_prime({:PLUS, a_prime, b}, tokens)
-      :MINUS ->
-        {b, tokens} = parseT(tokens)
-        parseE_prime({:MINUS, a_prime, b}, tokens)
-      _->{a_prime, [nextTok|tokens]}
-    end
-  end
-
-  def parseT(tokens) do
-    {a, tokens} = parseP(tokens)
-    {nextTok, tokens} = scanToken(tokens)
-
-    case nextTok do
-      :MUL->
-        {b, tokens} = parseP(tokens)
-        parseT_prime({:MUL, a, b}, tokens)
-      :DIV->
-        {b, tokens} = parseP(tokens)
-        parseT_prime({:DIV, a, b}, tokens)
-      :MOD->
-        {b, tokens} = parseP(tokens)
-        parseT_prime({:MOD, a, b}, tokens)
-      _->{a, [nextTok|tokens]}
-    end
-  end
-
-  def parseT_prime(a_prime={op, a, b},tokens)do
-    {nextTok, tokens} = scanToken(tokens)
-
-    case nextTok do
-      :MUL ->
-        {b, tokens} = parseP(tokens)
-        parseT_prime({:MUL, a_prime, b}, tokens)
-      :DIV ->
-        {b, tokens} = parseP(tokens)
-        parseT_prime({:DIV, a_prime, b}, tokens)
-      :MOD->
-        {b, tokens} = parseP(tokens)
-        parseT_prime({:MOD, a_prime, b}, tokens)
-      _->{a_prime, [nextTok|tokens]}
-    end
-  end
-
-
-
+  def gen_parseE do generateParser([:PLUS, :MINUS], true, gen_parseT, gen_parseE_prime, {:ERROR, "invalid operator token"}) end
+  def gen_parseE_prime do generatePrimeParser([:PLUS, :MINUS], gen_parseT) end
+  def gen_parseT do generateParser([:MUL, :DIV, :MOD], false, gen_parseP, gen_parseT_prime, {}) end
+  def gen_parseT_prime do generatePrimeParser([:MUL, :DIV, :MOD], gen_parseP) end
   def gen_parseP do generateParser([:EXP], false, gen_parseF, gen_parseP_prime, {}) end
   def gen_parseP_prime do generatePrimeParser([:EXP], gen_parseF) end
-  def gen_parseF do fn tokens -> parseF(tokens) end end
+  def gen_parseF do fn tokens, parseEcpy -> parseF(tokens, parseEcpy) end end
 
-  def parseF([]) do {nil, []} end
-  def parseF(tokens) do
+  def parseF([], _) do {nil, []} end
+  def parseF(tokens, parseEcpy) do
     {a, tokens} = scanToken(tokens)
 
     case a do
       {:LITERAL, v} -> {a, tokens}
       [_|_] -> #this happens if if we get an expression between LPARAN and RPARAN, this is expression in between
-        {res, _} = parseE(a)
+        {res, _} = parseEcpy.(a, parseEcpy)
         {res, tokens}
       :MINUS->
-          {res, tokens} = parseT(tokens)
+          {res, tokens} = parseF(tokens, parseEcpy)
           {{:NEGATE, res}, tokens}
-      _->{{:ERROR, "invalid term "}, tokens}
+      _->{{:ERROR, "invalid term"}, tokens}
     end
   end
 
