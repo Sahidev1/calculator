@@ -8,6 +8,7 @@ defmodule Unit_tests do
       {"0",0},
       {"-1", -1},
       {"--1", 1},
+      {"---1", -1},
       {"2 + 3", 5},
       {"10 - 4", 6},
       {"3 * 6", 18},
@@ -31,8 +32,9 @@ defmodule Unit_tests do
       {"999 % 1", 0},
       {"¤#¤%", {:ERROR, "invalid operator token"}},
       {"1/0", {:ERROR, "divide by zero"}},
-      {"a+3", {:ERROR, "invalid term"}},
-      {"", {:ERROR, "nil token"}}
+      {"a+3", {:ERROR, "invalid term or expression"}},
+      {"", {:ERROR, "nil token"}},
+      {"1-)(2+3)", {:ERROR, "invalid term or expression"}}
     ]
 
 

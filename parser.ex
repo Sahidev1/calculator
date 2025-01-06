@@ -56,7 +56,7 @@ defmodule Parser do
       :MINUS->
           {res, tokens} = parseF(tokens, parseEcpy)
           {{:NEGATE, res}, tokens}
-      _->{{:ERROR, "invalid term"}, tokens}
+      _->{{:ERROR, "invalid term or expression"}, tokens}
     end
   end
 
