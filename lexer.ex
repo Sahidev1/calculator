@@ -1,40 +1,32 @@
 
 defmodule Lexer do
 
-  def tokenize(input=[], tokens) do tokens end
+  def tokenize(input=[], tokens) do Enum.reverse(tokens) end
+  def tokenize([?\s| remaining], tokens) do tokenize(remaining, tokens) end
+  def tokenize([?\n| remaining], tokens) do tokenize(remaining, tokens) end
+  def tokenize([?\r| remaining], tokens) do tokenize(remaining, tokens) end
   def tokenize(input, tokens) do
-    {nextTok, remInput} = scanInput(input, [], false)
-    tokenize(remInput, tokens++[nextTok])
+    {nextTok, remInput} = scanInput(input)
+    tokenize(remInput, [nextTok|tokens])
   end
 
-  def scanInput([],foundTok, true) do
-    {{:LITERAL, String.to_integer(to_string(foundTok))}, []}
-  end
-  def scanInput([], _, false) do {nil, []} end
-  def scanInput(input=[c|rest], foundTok=[], scanningInt=false) do
-    cond do
-      isDigit?(c)-> scanInput(rest, foundTok++[c], true)
-      [c] == '^' -> {:EXP, rest}
-      [c] == '*'-> {:MUL, rest}
-      [c] == '/'-> {:DIV, rest}
-      [c] == '%' -> {:MOD, rest}
-      [c] == '+'-> {:PLUS, rest}
-      [c] == '-'-> {:MINUS, rest}
-      [c] == '('-> {:LPARAN, rest}
-      [c] == ')'-> {:RPARAN, rest}
-      true -> {:INVALID, rest}
-    end
-  end
 
-  def scanInput(input=[c|rest], foundTok, scanningInt=true) do
-    cond do
-      isDigit?(c)->scanInput(rest, foundTok++[c], true)
-      true->{{:LITERAL, String.to_integer(to_string(foundTok))}, input}
-    end
-  end
+  def scanInput(l=[c|rest]) when c in ?0..?9 do parse_number(l,0) end
+  def scanInput([?^|rest]) do {:EXP, rest} end
+  def scanInput([?*|rest]) do {:MUL, rest} end
+  def scanInput([?/|rest]) do {:DIV, rest} end
+  def scanInput([?%|rest]) do {:MOD, rest} end
+  def scanInput([?+|rest]) do {:PLUS, rest} end
+  def scanInput([?-|rest]) do {:MINUS, rest} end
+  def scanInput([?( |rest]) do {:LPARAN, rest} end
+  def scanInput([?) |rest]) do {:RPARAN, rest} end
+  def scanInput([_|rest]) do {:INVALID, rest} end
 
-  def isDigit?(c) do
-    c >= 48 && c <= 57
+  def parse_number([c | rest], acc) when c in ?0..?9 do
+    parse_number(rest, acc*10 + (c - ?0))
+  end
+  def parse_number(input, acc) do
+    {{:LITERAL, acc}, input}
   end
 
 end
