@@ -58,10 +58,19 @@ defmodule Eval do
     {ast, v}
   end
 
-  def timedRun (expr) do
-    {time0, ast} = :timer.tc(fn-> buildAST(expr) end)
-    {time1, v} = :timer.tc(fn -> evalAST(ast) end)
-    [TIME_UNIT: :MICRO_SECONDS ,ASTBUILD_TIME: time0, EVAL_TIME: time1, EVAL_RESULT: v]
+  def timedRun (input) do
+    {timetok, tokens} = :timer.tc(fn->
+      input = String.replace(input, ~r/\s+/, "")
+      input = String.to_charlist(input)
+      Lexer.tokenize(input, [])
+    end)
+    {timeparse, ast} = :timer.tc(fn ->
+      parseEfun = Parser.gen_parseE()
+      {ast,_} = parseEfun.(tokens, parseEfun)
+      ast
+    end)
+    {eval_time, v} = :timer.tc(fn -> evalAST(ast) end)
+    [TIME_UNIT: :MICRO_SECONDS ,TOKENIZE_TIME: timetok, PARSE_TIME: timeparse, EVAL_TIME: eval_time, EVAL_RESULT: v]
   end
 
   def buildAST(input) do
