@@ -3,7 +3,7 @@
 # E -> E + T | E - T | T
 # T -> T * P | T / P | T % P | P
 # P -> P ^ F | F
-# F -> INTEGER | (E) | -F
+# F -> FLOAT | INTEGER | (E) | -F
 
 
 # Non left recursive implementation of grammar:
@@ -13,13 +13,13 @@
 # T'-> (*|/|%)PT' | ε
 # P -> FP'
 # P' -> ^FP'
-# F -> INTEGER | (E) | -T
+# F -> FLOAT |INTEGER | (E) | -T
 
 # simpler more understandable expression:
 # E -> T{(+|-) T | ε} , where E' = {(+|-) T | ε}
 # T -> P{(*|/|%) P | ε} , where T' = {(*|/|%) P | ε}
 # P -> F{^F | ε}, where P' = {^F | ε}
-# F -> INTEGER | (E) | -T
+# F -> FLOAT | INTEGER | (E) | -T
 
 
 #steps:
@@ -33,10 +33,10 @@ Code.require_file("parser.ex")
 defmodule Eval do
   @type op():: :EXP |:MUL | :DIV | :MOD |:PLUS | :MINUS |:NEGATE
   @type delim():: :LPARAN | :RPARAN
-  @type literal():: integer()
+  @type literal():: {:INTEGER, integer()} | {:FLOAT, float()}
   @type token():: op() | delim() | literal()
 
-  @type expr()::{:LITERAL,literal()}
+  @type expr()::literal()
   | {op(), expr(), expr()}
   | {op(), expr()}
 
