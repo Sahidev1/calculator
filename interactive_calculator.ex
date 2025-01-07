@@ -33,6 +33,7 @@ defmodule Interactive do
           IO.inspect(evalres)
         rescue
           e in RuntimeError -> IO.inspect(e)
+          e in ArithmeticError -> IO.inspect(e)
         end
       end
 
