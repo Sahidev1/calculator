@@ -25,8 +25,16 @@ defmodule Lexer do
   def parse_number([c | rest], acc) when c in ?0..?9 do
     parse_number(rest, acc*10 + (c - ?0))
   end
+  def parse_number([?. | rest], acc) do
+    {deciacc, input} = parse_float(rest, 0, 10)
+    {{:FLOAT, acc+deciacc}, input}
+  end
   def parse_number(input, acc) do
-    {{:LITERAL, acc}, input}
+    {{:INTEGER, acc}, input}
   end
 
+  def parse_float([c|rest], acc, divisor) when c in ?0..?9 do
+    parse_float(rest, acc + c/divisor, 10*divisor)
+  end
+  def parse_float(input, acc, _) do {acc, input} end
 end
