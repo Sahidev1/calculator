@@ -3,3 +3,4 @@
 .elixir_ls/
 _build/
 *.dump
+*.escript

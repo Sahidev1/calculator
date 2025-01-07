@@ -29,7 +29,8 @@ defmodule Calculator.MixProject do
 
   defp escript do
     [
-      main_module: Calculator.Interactive
+      main_module: Calculator.Interactive,
+      name: "executable_app.escript"
     ]
   end
 end
