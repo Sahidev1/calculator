@@ -1,5 +1,5 @@
 
-Code.require_file("eval.ex")
+#Code.require_file("lib/eval.ex")
 
 defmodule Unit_tests do
 

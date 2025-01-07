@@ -1,5 +1,5 @@
 
-defmodule Lexer do
+defmodule Calculator.Lexer do
 
   def tokenize(_input=[], tokens) do Enum.reverse(tokens) end
   def tokenize([?\s| remaining], tokens) do tokenize(remaining, tokens) end

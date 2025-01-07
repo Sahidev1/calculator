@@ -1,2 +1,5 @@
 
 *.beam
+.elixir_ls/
+_build/
+*.dump

@@ -3,11 +3,11 @@
 
 
 
-Code.require_file("eval.ex")
+#Code.require_file("lib/eval.ex")
 
-defmodule Interactive do
+defmodule Calculator.Interactive do
 
-  def main do
+  def main([]) do
     interactive()
   end
 
@@ -22,14 +22,14 @@ defmodule Interactive do
       IO.puts("Exiting")
       :QUIT
     else
-      ast = Eval.buildAST(input)
-      {err?, msg} = Eval.evalAST_error_precheck(ast)
+      ast = Calculator.Eval.buildAST(input)
+      {err?, msg} = Calculator.Eval.evalAST_error_precheck(ast)
 
       if err? do
         IO.inspect({:ERROR, msg})
       else
         try do
-          evalres=Eval.evalAST(ast)
+          evalres=Calculator.Eval.evalAST(ast)
           IO.inspect(evalres)
         rescue
           e in RuntimeError -> IO.inspect(e)
@@ -42,4 +42,4 @@ defmodule Interactive do
   end
 end
 
-Interactive.main()
+#Interactive.main()

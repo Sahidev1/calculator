@@ -1,4 +1,3 @@
-
 # Grammar:
 # E -> E + T | E - T | T
 # T -> T * P | T / P | T % P | P
@@ -27,10 +26,10 @@
 #2) parse token sequence and build AST
 #3 optional) Evaluate AST
 
-Code.require_file("lexer.ex")
-Code.require_file("parser.ex")
+#Code.require_file("lib/lexer.ex")
+#Code.require_file("lib/parser.ex")
 
-defmodule Eval do
+defmodule Calculator.Eval do
   @type op():: :EXP |:MUL | :DIV | :MOD |:PLUS | :MINUS |:NEGATE
   @type delim():: :LPARAN | :RPARAN
   @type literal():: {:INTEGER, integer()} | {:FLOAT, float()}
@@ -64,10 +63,10 @@ defmodule Eval do
     end)
 
     {timetok, tokens} = :timer.tc(fn->
-      Lexer.tokenize(input, [])
+      Calculator.Lexer.tokenize(input, [])
     end)
     {timeparse, ast} = :timer.tc(fn ->
-      parseEfun = Parser.gen_parseE()
+      parseEfun = Calculator.Parser.gen_parseE()
       {ast,_} = parseEfun.(tokens, parseEfun)
       ast
     end)
@@ -77,8 +76,8 @@ defmodule Eval do
 
   def buildAST(input) do
     input = String.to_charlist(input)
-    tokens = Lexer.tokenize(input, [])
-    parseEfun = Parser.gen_parseE()
+    tokens = Calculator.Lexer.tokenize(input, [])
+    parseEfun = Calculator.Parser.gen_parseE()
     {ast,_} = parseEfun.(tokens, parseEfun)
     ast
   end

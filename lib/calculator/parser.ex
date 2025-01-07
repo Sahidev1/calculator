@@ -1,5 +1,5 @@
 # Uses higher order function to generape parsers
-defmodule Parser do
+defmodule Calculator.Parser do
   def generatePrimeParser(cases, subparser) do
     fn a_prime={_op, _a, _b}, tokens, fself, topself ->
       {nextTok, tokens} = scanToken(tokens)
