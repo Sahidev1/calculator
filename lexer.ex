@@ -34,7 +34,7 @@ defmodule Lexer do
   end
 
   def parse_float([c|rest], acc, divisor) when c in ?0..?9 do
-    parse_float(rest, acc + c/divisor, 10*divisor)
+    parse_float(rest, acc + (c-?0)/divisor, 10*divisor)
   end
   def parse_float(input, acc, _) do {acc, input} end
 end
