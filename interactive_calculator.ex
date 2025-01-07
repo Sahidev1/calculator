@@ -28,7 +28,12 @@ defmodule Interactive do
       if err? do
         IO.inspect({:ERROR, msg})
       else
-        IO.inspect(Eval.evalAST(ast))
+        try do
+          evalres=Eval.evalAST(ast)
+          IO.inspect(evalres)
+        rescue
+          e in RuntimeError -> IO.inspect(e)
+        end
       end
 
       interactive(false)

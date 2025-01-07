@@ -47,7 +47,6 @@ defmodule Parser do
   def parseF([], _) do {nil, []} end
   def parseF(tokens, parseEcpy) do
     {a, tokens} = scanToken(tokens)
-    IO.inspect(a)
     case a do
       {:INTEGER, _} -> {a, tokens}
       {:FLOAT, _} -> {a, tokens}

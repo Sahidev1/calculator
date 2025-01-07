@@ -84,9 +84,11 @@ defmodule Eval do
   end
 
   def evalAST_error_precheck({:ERROR, msg}) do {true, msg} end
-  def evalAST_error_precheck({:LITERAL, _v}) do {false, ""} end
+  def evalAST_error_precheck({:INTEGER, _v}) do {false, ""} end
+  def evalAST_error_precheck({:FLOAT, _v}) do {false, ""} end
   def evalAST_error_precheck({:NEGATE, expr}) do evalAST_error_precheck(expr) end
-  def evalAST_error_precheck({:DIV, _, {:LITERAL, 0}}) do {true, "divide by zero"} end
+  def evalAST_error_precheck({:DIV, _, {:INTEGER, 0}}) do {true, "divide by zero"} end
+  def evalAST_error_precheck({:DIV, _, {:FLOAT, 0.0}}) do {true, "divide by zero"} end
   def evalAST_error_precheck({_op, left, right}) do
     {lcheck,lmsg} = evalAST_error_precheck(left)
     {rcheck,rmsg} = evalAST_error_precheck(right)
@@ -105,13 +107,38 @@ defmodule Eval do
   def evalAST(err={:ERROR, _msg}) do
     exit(err)
   end
-  def evalAST({:LITERAL, v}) do v end
+  def evalAST({:INTEGER, v}) do v end
+  def evalAST({:FLOAT, v}) do v end
   def evalAST({:NEGATE, expr}) do -evalAST(expr) end
   def evalAST({:PLUS, left, right}) do evalAST(left) + evalAST(right) end
   def evalAST({:MINUS, left, right}) do evalAST(left) - evalAST(right) end
   def evalAST({:MUL, left, right}) do evalAST(left)*evalAST(right) end
-  def evalAST({:DIV, left, right}) do div(evalAST(left), evalAST(right)) end
-  def evalAST({:MOD, left, right}) do rem(evalAST(left), evalAST(right)) end
-  def evalAST({:EXP, left, right}) do evalAST(left) ** evalAST(right) end
+  def evalAST({:DIV, left, right}) do
+     leftEval = evalAST(left)
+     rightEval = evalAST(right)
+     if is_float(leftEval) || is_float(rightEval) do
+        leftEval / rightEval
+     else
+        div(leftEval, rightEval)
+     end
+  end
+  def evalAST({:MOD, left, right}) do
+    leftEval = evalAST(left)
+    rightEval = evalAST(right)
+    if is_float(leftEval) || is_float(rightEval) do
+      raise("Cant perform modulus on floating point values")
+    else
+      rem(leftEval, rightEval)
+    end
+  end
+  def evalAST({:EXP, left, right}) do
+    leftEval = evalAST(left)
+    rightEval = evalAST(right)
+    if leftEval < 0 && is_float(rightEval) do
+      raise("Cant take roots of negative numbers")
+    else
+      evalAST(left) ** evalAST(right)
+    end
+  end
 
 end
