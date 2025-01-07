@@ -2,8 +2,9 @@
 #Code.require_file("lib/eval.ex")
 
 defmodule Unit_tests do
+  use ExUnit.Case, async: true
 
-  def test do
+  describe "test/0" do
     test_cases = [
       {"0",0},
       {"-1", -1},
@@ -47,30 +48,18 @@ defmodule Unit_tests do
 
 
 
-    res=Enum.reduce(test_cases,[0,0,[]] ,fn {expression, expected}, [cases,failed, failStack] ->
-      try do
-        result = Eval.eval(expression)
-        result = if is_float(result) do Float.round(result, 3) else result end
-        if (result == expected) do
-          [cases + 1, failed, failStack]
-        else
-          [cases + 1, failed + 1, [{:FAIL, EXPR: expression, EXPECTED: expected, GOT: result}|failStack]]
-        end
-      rescue _e in RuntimeError ->
-        if expected == :RUNTIME_ERROR do
-          [cases + 1, failed, failStack]
-        else
-          [cases + 1, failed + 1, [{:FAIL, EXPR: expression, EXPECTED: expected, GOT: :RUNTIME_ERROR}|failStack]]
+    for {expression, expected} <- test_cases do
+      test "evaluates #{expression}" do
+        try do
+          result = Calculator.Eval.eval(unquote(expression))
+          result = if is_float(result), do: Float.round(result, 3), else: result
+          assert result == unquote(expected)
+        rescue
+          RuntimeError ->
+            assert unquote(expected) == :RUNTIME_ERROR
         end
       end
-    end)
-    [cases, fails, stack] = res
-    [CASES: cases, FAILS: fails, FAILSTACK: stack]
+    end
   end
 
 end
-
-
-{time, res}=:timer.tc(fn -> Unit_tests.test() end)
-IO.inspect([TIME_MICROS: time, TESTRESULT: res])
-exit("finished")
