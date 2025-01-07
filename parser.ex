@@ -47,9 +47,10 @@ defmodule Parser do
   def parseF([], _) do {nil, []} end
   def parseF(tokens, parseEcpy) do
     {a, tokens} = scanToken(tokens)
-
+    IO.inspect(a)
     case a do
-      {:LITERAL, _} -> {a, tokens}
+      {:INTEGER, _} -> {a, tokens}
+      {:FLOAT, _} -> {a, tokens}
       [_|_] -> #this happens if if we get an expression between LPARAN and RPARAN, this is expression in between
         {res, _} = parseEcpy.(a, parseEcpy)
         {res, tokens}
