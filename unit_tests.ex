@@ -34,17 +34,34 @@ defmodule Unit_tests do
       {"1/0", {:ERROR, "divide by zero"}},
       {"a+3", {:ERROR, "invalid term or expression"}},
       {"", {:ERROR, "nil token"}},
-      {"1-)(2+3)", {:ERROR, "invalid term or expression"}}
+      {"1-)(2+3)", {:ERROR, "invalid term or expression"}},
+      {"3.434*3.673", Float.round(3.434*3.673, 3)},
+      {"45*0.3410", Float.round(45*0.3410, 3)},
+      {"34 + 4.5", 38.5},
+      {"3.4+ 6.5", 9.9},
+      {"1/0.0", {:ERROR, "divide by zero"}},
+      {"5/10.0", 0.5},
+      {"5%0.3", :RUNTIME_ERROR},
+      {"-1^0.5", :RUNTIME_ERROR},
     ]
 
 
 
     res=Enum.reduce(test_cases,[0,0,[]] ,fn {expression, expected}, [cases,failed, failStack] ->
-      result = Eval.eval(expression)
-      if (result == expected) do
-        [cases + 1, failed, failStack]
-      else
-        [cases + 1, failed + 1, [{:FAIL, EXPR: expression, EXPECTED: expected, GOT: result}|failStack]]
+      try do
+        result = Eval.eval(expression)
+        result = if is_float(result) do Float.round(result, 3) else result end
+        if (result == expected) do
+          [cases + 1, failed, failStack]
+        else
+          [cases + 1, failed + 1, [{:FAIL, EXPR: expression, EXPECTED: expected, GOT: result}|failStack]]
+        end
+      rescue _e in RuntimeError ->
+        if expected == :RUNTIME_ERROR do
+          [cases + 1, failed, failStack]
+        else
+          [cases + 1, failed + 1, [{:FAIL, EXPR: expression, EXPECTED: expected, GOT: :RUNTIME_ERROR}|failStack]]
+        end
       end
     end)
     [cases, fails, stack] = res
