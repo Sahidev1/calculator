@@ -7,3 +7,5 @@ The calculator consists of a tokenizer, parser and evaluater. The tokenizer crea
 To run the interactive calculator you need elixir installed. To run it from terminal:
 
     iex interactive_calculator.ex
+
+there is a mix version of app on the branch "mix"
