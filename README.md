@@ -9,3 +9,8 @@ To run the interactive calculator you need elixir installed. To run it from term
     iex interactive_calculator.ex
 
 there is a mix version of app on the branch "mix"
+
+
+## todo
+
+* Fix exponentiation evaluation, right now it is evaluated left to right, but it should be right to left.
